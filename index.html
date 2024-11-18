@@ -20,6 +20,108 @@
         <!-- Cards will be generated here -->
     </div>
 
+    <script>
+        const colors = [
+            '#FF0000', '#FF0000', // Red
+            '#00FF00', '#00FF00', // Green
+            '#0000FF', '#0000FF', // Blue
+            '#FFFF00', '#FFFF00', // Yellow
+            '#FF00FF', '#FF00FF', // Magenta
+            '#00FFFF', '#00FFFF', // Cyan
+            '#FFA500', '#FFA500', // Orange
+            '#800080', '#800080'  // Purple
+        ];
 
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let score = 0;
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        let canFlip = true;
+
+        document.getElementById('bestScore').textContent = bestScore;
+
+        // Shuffle array function
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Create game board
+        function createBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            const shuffledColors = shuffle([...colors]);
+            matchedPairs = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+
+            shuffledColors.forEach((color, index) => {
+                const card = document.createElement('div');
+                card.className = 'w-20 h-20 bg-gray-700 rounded-lg cursor-pointer transform transition-transform duration-300 hover:scale-105';
+                card.setAttribute('data-color', color);
+                card.setAttribute('data-index', index);
+                
+                card.addEventListener('click', () => flipCard(card));
+                gameBoard.appendChild(card);
+            });
+        }
+
+        // Flip card function
+        function flipCard(card) {
+            if (!canFlip || flippedCards.length === 2 || card.style.backgroundColor || 
+                flippedCards.includes(card)) return;
+
+            card.style.backgroundColor = card.getAttribute('data-color');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                checkMatch();
+            }
+        }
+
+        // Check if cards match
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const match = card1.getAttribute('data-color') === card2.getAttribute('data-color');
+
+            if (match) {
+                matchedPairs++;
+                score += 10;
+                flippedCards = [];
+                canFlip = true;
+
+                if (matchedPairs === colors.length / 2) {
+                    setTimeout(() => {
+                        if (score > bestScore) {
+                            bestScore = score;
+                            localStorage.setItem('bestScore', bestScore);
+                            document.getElementById('bestScore').textContent = bestScore;
+                        }
+                        alert('Congratulations! You won! 🎉');
+                    }, 500);
+                }
+            } else {
+                score = Math.max(0, score - 2);
+                setTimeout(() => {
+                    card1.style.backgroundColor = '';
+                    card2.style.backgroundColor = '';
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+
+            document.getElementById('score').textContent = score;
+        }
+
+        // Reset game
+        document.getElementById('resetBtn').addEventListener('click', createBoard);
+
+        // Initialize game
+        createBoard();
+    </script>
 </body>
 </html>
